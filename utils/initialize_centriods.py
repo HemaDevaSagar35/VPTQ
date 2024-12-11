@@ -38,7 +38,7 @@ def weighted_kmean(w, weights, k, max_iter = 100, tol = 1e-4, init = 'random', r
         
         center_shift = (new_centroids - center_centriods).pow(2).sum()
         centriods = new_centroids
-        if center_shift <= toal:
+        if center_shift <= tol:
             break
 
     return centriods
@@ -79,6 +79,3 @@ def get_centriods(w, h, v, k):
     w = w.t().view(n_rows, v)
     h = h.diag().repeat(n_samples//v, 1).t().contiguous().view(-1, 1)
     return weighted_kmean(w, h, k)
-
-
-
