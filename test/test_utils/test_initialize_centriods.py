@@ -1,6 +1,6 @@
 import torch
 import pytest
-from VPTQ.utils.initialize_centriods import get_centriods
+from VPTQ.utils.initialize_centriods import get_centriods, weighted_kmean
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -12,6 +12,17 @@ we will test the following
 """
 
 def test_get_centriods():
+
+    return True
+
+def test_weighted_kmean():
+    w = torch.tensor([[1, 2], [3, 4], [15, 6], [18, 8]], device=DEVICE)
+    h = torch.tensor([[1], [1], [1], [1]], device=DEVICE)
+    k = 2
+    expected_centriods = torch.tensor([[2, 3], [16.5, 7]], device=DEVICE)
+    output_centriods = weighted_kmean(w, h, k)
+
+    assert torch.allclose(output_centriods, expected_centriods)
     return True
 
 
