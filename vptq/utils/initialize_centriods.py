@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import torch.nn.functionas as F
+import torch.nn.functional as F
 
 
 def weighted_kmean(w, weights, k, max_iter = 100, tol = 1e-4, init = 'random', random_state = None):
@@ -27,16 +27,15 @@ def weighted_kmean(w, weights, k, max_iter = 100, tol = 1e-4, init = 'random', r
     if init == 'random':
         np.random.seed(random_state)
         centriods = w[np.random.choice(n_samples, k, replace = False)]
-    
     for i in range(max_iter):
-        distances = F.pairwise_distance(w, centriods)
-        labels = F.argmin(distances, dim = 1)
-        new_centroids = F.zeros_like(centriods)
+        distances = torch.cdist(w, centriods)
+        labels = torch.argmin(distances, dim = 1)
+        new_centroids = torch.zeros_like(centriods)
         for j in range(k):
             mask = labels == j
-            new_centroids[j] = F.sum(w[mask] * weights[mask].view(-1, 1), dim = 0) / F.sum(weights[mask])
+            new_centroids[j] = torch.sum(w[mask] * weights[mask].view(-1, 1), dim = 0) / torch.sum(weights[mask])
         
-        center_shift = (new_centroids - center_centriods).pow(2).sum()
+        center_shift = (new_centroids - centriods).pow(2).sum()
         centriods = new_centroids
         if center_shift <= tol:
             break
@@ -75,7 +74,7 @@ def get_centriods(w, h, v, k):
 
     """
     n_samples, n_features = w.shape
-    n_rows = n_features x (n_samples // v)
-    w = w.t().view(n_rows, v)
+    n_rows = n_features * (n_samples // v)
+    w = w.permute(1, 0).reshape(n_rows, v)
     h = h.diag().repeat(n_samples//v, 1).t().contiguous().view(-1, 1)
     return weighted_kmean(w, h, k)
